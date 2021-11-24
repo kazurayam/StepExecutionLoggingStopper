@@ -1,0 +1,10 @@
+{
+  "keywordFileContentHash": "6CD0481542A57CFAB06F460716140445",
+  "keywordClasses": [
+    {
+      "name": "com.kazurayam.ks.logging.StepExecutionLoggingStopperTest",
+      "keywordMethods": []
+    }
+  ],
+  "javadocParsed": true
+}
