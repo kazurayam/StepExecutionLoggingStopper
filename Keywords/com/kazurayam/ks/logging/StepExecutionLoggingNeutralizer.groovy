@@ -19,38 +19,39 @@ public class StepExecutionLoggingNeutralizer {
 
 	static void neutralize() {
 		neutralizeStartKeyword()
-		neutralizeEndKeyword()	
+		neutralizeEndKeyword()
 	}
-	
+
 	static void neutralizeStartKeyword() {
-		println "StepExecutionLogginStopper#modifyKeywordLogger() was called"
 		KeywordLogger.metaClass.startKeyword = { String name, String actionType, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
 			/* does no logging */
-			println "KeywordLogger#startKeyword() was called - signature A"
+			println KeywordLogger.class.getName() + "#startKeyword(String,String,Map,Stack) was called"
 		}
 		KeywordLogger.metaClass.startKeyword = { String name, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
 			/* does no logging */
-			println "KeywordLogger#startKeyword() was called - signature B"
+			println KeywordLogger.class.getName() + "#startKeyword(String,Map,Stack) was called"
 		}
 		KeywordLogger.metaClass.startKeyword = { String name, Map<String, String> attributes, int nestedLevel ->
 			/* does no logging */
-			println "KeywordLogger#startKeyword() was called - signature C"
+			println KeywordLogger.class.getName() + "#startKeyword(String,Map,int) was called"
 		}
+		println StepExecutionLoggingNeutralizer.class.getName() + "#neutralizeStartKeyword() was called"
+		
 	}
-	
+
 	static void neutralizeEndKeyword() {
 		KeywordLogger.metaClass.endKeyword = { String name, String actionType, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
 			/* does no logging */
-			println "KeywordLogger#endKeyword() was called - signature A"
+			println KeywordLogger.class.getName() + "#endKeyword(String, String, Map, Stack) was called"
 		}
 		KeywordLogger.metaClass.endKeyword = { String name, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
 			/* does no logging */
-			println "KeywordLogger#endKeyword() was called - signature B"
+			println KeywordLogger.class.getName() + "#endKeyword(String,Map,Stack) was called"
 		}
 		KeywordLogger.metaClass.endKeyword = { String name, Map<String, String> attributes, int nestedLevel ->
 			/* does no logging */
-			println "KeywordLogger#endKeyword() was called - signature C"
+			println KeywordLogger.class.getName() + "#endKeyword(String,Map,int) was called"
 		}
-		println "StepExecutionLogginStopper#modifyKeywordLogger() finished"
+		println StepExecutionLoggingNeutralizer.class.getName() + "#neutralizeEndKeyword() finished"
 	}
 }
