@@ -1,19 +1,33 @@
 package com.kazurayam.ks.logging
 
 import com.kms.katalon.core.logging.KeywordLogger
+import com.kms.katalon.core.logging.KeywordLogger.KeywordStackElement
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.util.concurrent.ConcurrentHashMap
 
+ 
 /**
- * Modifies the `static private shouldLogTestSteps` property of 
- * `com.kms.katalon.core.logging.KeywordLogger` class runtime
- * using Java Reflection API.
+ * Modifies the `com.kms.katalon.core.logging.KeywordLogger` class runtime
+ * using Java Reflection API and Groovy's Meta-programming technique.
+ * My objective is to reduce the overhead of superfluous "Start action :" + "End actio :" logs, and
+ * Eventually my tests run faster. 
+ * I wanted to do this in Katalon Studio Free version where I can not disable "Log executed test steps" option.
  * 
- * Once the `shouldLogTestSteps` property is turned to be false, 
- * `KeyworLogger` will stop firing the "step execution logs" events at all.
- * By doing so, we can reduce the overhead of superfluous "Start action :" + "End action :" messages.
- * Eventually our tests will run faster.
- *  
+ * The strategy of this Neutralizer is as follows.
+ * 
+ * 1. modify the `startKeyword()` and `endKeyword()` methods of `KeywordLogger` class so that
+ *   the methods does nothing. The methods does not call the logger any longer.
+ *   I do it using Groovy's metaClass.
+ *
+ * But this is not enough. KeywordLogger class maintains a static cache of KeywordLogger instances and
+ * Katalon Studio fills the cache as soon as it starts. The modified `KeywordLogger` class is not used then.
+ * Therefore the cached instances will have the unmodified `startKeyword()` and `endKeyword` implementation.
+ * So I should be able to clear the cache at the timing I want to.
+ *
+ * 2. initialize the `private static final Map<String, KeywordLogger keywordLoggerLookup` property of
+ *   the KeywordLogger class when I want to.
+ *
  * You can read the source of that class at
  * https://github.com/katalon-studio/katalon-studio-testing-framework/blob/master/Include/scripts/groovy/com/kms/katalon/core/logging/KeywordLogger.java
  * 
@@ -26,42 +40,58 @@ import java.lang.reflect.Modifier
 
 public class StepExecutionLoggingNeutralizer {
 
-	/**
-	 * return the boolean value of the `private static` property `shouldLogTestSteps` of
-	 * a `KeywordLogger` object
-	 * 
-	 * @return
-	 */
-	static Boolean getValue_shouldLogTestSteps(KeywordLogger instance) {
-		Objects.requireNonNull(instance)
-		Field targetField = instance.getClass().getDeclaredField("shouldLogTestSteps")
-		return getPrivateBooleanFieldValue(instance, targetField)
+	
+	static void neutralizeStartKeyword() {
+		KeywordLogger.metaClass.startKeyword = { String name, String actionType, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
+			/* does no logging */
+			println KeywordLogger.class.getName() + "#startKeyword(String,String,Map,Stack) was called"
+		}
+		KeywordLogger.metaClass.startKeyword = { String name, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
+			/* does no logging */
+			println KeywordLogger.class.getName() + "#startKeyword(String,Map,Stack) was called"
+		}
+		KeywordLogger.metaClass.startKeyword = { String name, Map<String, String> attributes, int nestedLevel ->
+			/* does no logging */
+			println KeywordLogger.class.getName() + "#startKeyword(String,Map,int) was called"
+		}
+		println StepExecutionLoggingNeutralizer.class.getName() + "#neutralizeStartKeyword() was called"
+		
 	}
 
-	static Boolean getPrivateBooleanFieldValue(Object obj, Field targetField) {
-		Objects.requireNonNull(obj)
-		Objects.requireNonNull(targetField)
-		targetField.setAccessible(true)
-		return targetField.getBoolean(obj)
+	static void neutralizeEndKeyword() {
+		KeywordLogger.metaClass.endKeyword = { String name, String actionType, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
+			/* does no logging */
+			println KeywordLogger.class.getName() + "#endKeyword(String, String, Map, Stack) was called"
+		}
+		KeywordLogger.metaClass.endKeyword = { String name, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
+			/* does no logging */
+			println KeywordLogger.class.getName() + "#endKeyword(String,Map,Stack) was called"
+		}
+		KeywordLogger.metaClass.endKeyword = { String name, Map<String, String> attributes, int nestedLevel ->
+			/* does no logging */
+			println KeywordLogger.class.getName() + "#endKeyword(String,Map,int) was called"
+		}
+		println StepExecutionLoggingNeutralizer.class.getName() + "#neutralizeEndKeyword() finished"
 	}
-
-	static void neutralize(KeywordLogger instance) {
-		Objects.requireNonNull(instance)
-		Field targetField = instance.getClass().getDeclaredField("shouldLogTestSteps")
-		setPrivateBooleanFieldWithValue(instance, targetField, Boolean.FALSE)
+	
+	
+	// private static final Map<String, KeywordLogger> keywordLoggerLookup = new ConcurrentHashMap<>();
+	static void clearCache() {
+		KeywordLogger instance = new KeywordLogger()
+		Field targetField = instance.getClass().getDeclaredField("keywordLoggerLookup")
+		setPrivateStaticFinalFieldWithValue(instance, targetField,
+			new ConcurrentHashMap<>())
 	}
-
-	static void setPrivateBooleanFieldWithValue(Object obj, Field targetField, Object newValue) {
+	
+	static void setPrivateStaticFinalFieldWithValue(Object obj, Field targetField, Object newValue) {
 		Objects.requireNonNull(obj)
 		Objects.requireNonNull(targetField)
 		Objects.requireNonNull(newValue)
-		//
 		targetField.setAccessible(true)
 		Field modifiers = Field.class.getDeclaredField("modifiers")
 		modifiers.setAccessible(true)
 		modifiers.setInt(targetField,
-				targetField.getModifiers() & ~Modifier.PRIVATE & ~Modifier.FINAL)
-		//
+			targetField.getModifiers() & ~Modifier.PRIVATE & ~Modifier.FINAL)
 		targetField.set(obj, newValue)
 	}
 }
