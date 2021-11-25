@@ -79,8 +79,10 @@ public class StepExecutionLoggingNeutralizer {
 	static void clearCache() {
 		KeywordLogger instance = KeywordLogger.getInstance(this.getClass())
 		Field targetField = instance.getClass().getDeclaredField("keywordLoggerLookup")
-		setPrivateStaticFinalFieldWithValue(instance, targetField,
-				new ConcurrentHashMap<>())
+		Object obj = getPrivateFieldValue(instance, targetField)
+		assert obj instanceof Map
+		Map m = (Map)obj
+		m.clear()
 	}
 
 	static int sizeOfKeywordLoggerLookup() {
@@ -91,6 +93,15 @@ public class StepExecutionLoggingNeutralizer {
 		Map m = (Map)obj
 		return m.size()
 	}
+	
+	static Set<String> keySetOfKeywordLoggerLookup() {
+		KeywordLogger instance = KeywordLogger.getInstance(this.getClass())
+		Field targetField = instance.getClass().getDeclaredField("keywordLoggerLookup")
+		Object obj = getPrivateFieldValue(instance, targetField)
+		assert obj instanceof Map
+		Map m = (Map)obj
+		return m.keySet()
+	}
 
 	static Object getPrivateFieldValue(Object obj, Field targetField) {
 		Objects.requireNonNull(obj)
@@ -98,23 +109,16 @@ public class StepExecutionLoggingNeutralizer {
 		targetField.setAccessible(true)
 		return targetField.get(obj)
 	}
-
-	/**
-	 * https://qiita.com/5at00001040/items/83bd7ea85d0f545ae7c3
-	 * 
-	 * @param obj
-	 * @param targetField
-	 * @param newValue
-	 */
-	static void setPrivateStaticFinalFieldWithValue(Object obj, Field targetField, Object newValue) {
-		Objects.requireNonNull(obj)
-		Objects.requireNonNull(targetField)
-		Objects.requireNonNull(newValue)
-		targetField.setAccessible(true)
-		Field modifiers = Field.class.getDeclaredField("modifiers")
-		modifiers.setAccessible(true)
-		modifiers.setInt(targetField,
-				targetField.getModifiers() & ~Modifier.PRIVATE & ~Modifier.FINAL)
-		targetField.set(obj, newValue)
-	}
 }
+
+
+
+
+
+
+
+
+
+
+
+

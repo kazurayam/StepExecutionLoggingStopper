@@ -22,13 +22,13 @@ public class StepExecutionLoggingNeutralizerTest {
 		Object obj = StepExecutionLoggingNeutralizer.getPrivateFieldValue(instance, targetField)
 		assert obj instanceof Map
 		Map m = (Map)obj
-		println "keyworLoggerLoockup.keyset(): ${m.keySet()}"
+		println "[test_getPrivateFieldValue] keyset: ${m.keySet()}"
 	}
 	
 	@Test
 	void test_sizeOfKeywordLoggerLookup() {
 		int size = StepExecutionLoggingNeutralizer.sizeOfKeywordLoggerLookup()
-		assert size > 3
+		assert size > 1
 	}
 
 	@Test
@@ -44,22 +44,15 @@ public class StepExecutionLoggingNeutralizerTest {
 		KeywordLogger instance = KeywordLogger.getInstance(this.getClass());
 		instance.endKeyword("", [:], 0)
 	}
-
-	@Test
-	void test_setPrivateStaticFinalFieldWithValue() {
-		KeywordLogger instance = KeywordLogger.getInstance(this.getClass());
-		Field targetField = instance.getClass().getDeclaredField("keywordLoggerLookup")
-		StepExecutionLoggingNeutralizer.setPrivateStaticFinalFieldWithValue(instance, targetField,
-				new ConcurrentHashMap<>())
-	}
 	
-	@Ignore
 	@Test
 	void test_clearCache() {
 		StepExecutionLoggingNeutralizer.clearCache()
+		Set<String> keySet = StepExecutionLoggingNeutralizer.keySetOfKeywordLoggerLookup()
+		assert keySet.size() > 0 
+		println "[test_clearCache] keySet: ${keySet}"
 	}
 
-	@Ignore
 	@Test
 	void test_neutralize() {
 		StepExecutionLoggingNeutralizer.neutralize()

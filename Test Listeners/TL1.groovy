@@ -15,13 +15,4 @@ class TL1 {
 		}
 	}
 	
-	/* usually not necessary
-	@BeforeTestCase
-	def beforeTestCase(TestCaseContext testCaseContext) {
-		
-		if (DO_IT) {
-			StepExecutionLoggingNeutralizer.neutralize()
-		}
-	}
-	*/
 }
