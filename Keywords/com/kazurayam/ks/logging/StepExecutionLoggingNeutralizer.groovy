@@ -1,69 +1,62 @@
 package com.kazurayam.ks.logging
 
-import org.junit.After
-
 import com.kms.katalon.core.logging.KeywordLogger
-import com.kms.katalon.core.logging.KeywordLogger.KeywordStackElement
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 
 /**
- * Modifies methods of the com.kms.katalon.core.logging.KeywordLogger class runtime
- * using Groovy's Meta-programming technique.
+ * Modifies the `static private shouldLogTestSteps` property of 
+ * `com.kms.katalon.core.logging.KeywordLogger` class runtime
+ * using Java Reflection API.
  * 
- * See the source of that class at
+ * Once the `shouldLogTestSteps` property is turned to be false, 
+ * `KeyworLogger` will stop firing the "step execution logs" events at all.
+ * By doing so, we can reduce the overhead of superfluous "Start action :" + "End action :" messages.
+ * Eventually our tests will run faster.
+ *  
+ * You can read the source of that class at
  * https://github.com/katalon-studio/katalon-studio-testing-framework/blob/master/Include/scripts/groovy/com/kms/katalon/core/logging/KeywordLogger.java
- * 
- * Will override `startKeyword()` and `endKeyword()` in order to stop firing the "step execution logs" events
- * so that we can reduce the overhead of superfluous "Start action :" and "End action :" messages.
- * Eventually I want my tests run faster.
  * 
  * @author kazurayam
  */
 public class StepExecutionLoggingNeutralizer {
 
-	static void inspect() {
-		KeywordLogger.metaClass.'static'.getInstance = { Class<?> clazz ->
-			println KeywordLogger.class.getName() + "#getInstance(Class) was called for ${clazz}"
-			return getInstance(clazz.getName())
-		}
+	/**
+	 * return the boolean value of the `private static` property `shouldLogTestSteps` of
+	 * a `KeywordLogger` object
+	 * 
+	 * @return
+	 */
+	static Boolean getValue_shouldLogTestSteps() {
+		KeywordLogger instance = new KeywordLogger();
+		Field targetField = instance.getClass().getDeclaredField("shouldLogTestSteps")
+		return getPrivateBooleanFieldValue(instance, targetField)
 	}
-	
+
+	static Boolean getPrivateBooleanFieldValue(Object obj, Field targetField) {
+		Objects.requireNonNull(obj)
+		Objects.requireNonNull(targetField)
+		targetField.setAccessible(true)
+		return targetField.getBoolean(obj)
+	}
+
 	static void neutralize() {
-		neutralizeStartKeyword()
-		neutralizeEndKeyword()
+		KeywordLogger instance = new KeywordLogger();
+		Field targetField = instance.getClass().getDeclaredField("shouldLogTestSteps")
+		setPrivateBooleanFieldWithValue(instance, targetField, Boolean.FALSE)
+		assert getValue_shouldLogTestSteps() == false
 	}
 
-	static void neutralizeStartKeyword() {
-		KeywordLogger.metaClass.startKeyword = { String name, String actionType, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
-			/* does no logging */
-			println KeywordLogger.class.getName() + "#startKeyword(String,String,Map,Stack) was called"
-		}
-		KeywordLogger.metaClass.startKeyword = { String name, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
-			/* does no logging */
-			println KeywordLogger.class.getName() + "#startKeyword(String,Map,Stack) was called"
-		}
-		KeywordLogger.metaClass.startKeyword = { String name, Map<String, String> attributes, int nestedLevel ->
-			/* does no logging */
-			println KeywordLogger.class.getName() + "#startKeyword(String,Map,int) was called"
-		}
-		println StepExecutionLoggingNeutralizer.class.getName() + "#neutralizeStartKeyword() was called"
-		
+	static void setPrivateBooleanFieldWithValue(Object obj, Field targetField, Object newValue) {
+		Objects.requireNonNull(targetField)
+		Objects.requireNonNull(newValue)
+		//
+		targetField.setAccessible(true)
+		Field modifiers = Field.class.getDeclaredField("modifiers")
+		modifiers.setAccessible(true)
+		modifiers.setInt(targetField,
+				targetField.getModifiers() & ~Modifier.PRIVATE & ~Modifier.FINAL)
+		//
+		targetField.set(obj, newValue)
 	}
-
-	static void neutralizeEndKeyword() {
-		KeywordLogger.metaClass.endKeyword = { String name, String actionType, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
-			/* does no logging */
-			println KeywordLogger.class.getName() + "#endKeyword(String, String, Map, Stack) was called"
-		}
-		KeywordLogger.metaClass.endKeyword = { String name, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
-			/* does no logging */
-			println KeywordLogger.class.getName() + "#endKeyword(String,Map,Stack) was called"
-		}
-		KeywordLogger.metaClass.endKeyword = { String name, Map<String, String> attributes, int nestedLevel ->
-			/* does no logging */
-			println KeywordLogger.class.getName() + "#endKeyword(String,Map,int) was called"
-		}
-		println StepExecutionLoggingNeutralizer.class.getName() + "#neutralizeEndKeyword() finished"
-	}
-	
-	
 }
