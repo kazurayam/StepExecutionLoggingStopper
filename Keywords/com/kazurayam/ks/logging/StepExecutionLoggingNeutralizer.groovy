@@ -17,8 +17,13 @@ import java.lang.reflect.Modifier
  * You can read the source of that class at
  * https://github.com/katalon-studio/katalon-studio-testing-framework/blob/master/Include/scripts/groovy/com/kms/katalon/core/logging/KeywordLogger.java
  * 
+ * I learned this way of Java Reflection from
+ * - https://qiita.com/5at00001040/items/83bd7ea85d0f545ae7c3
+ * - https://stackoverflow.com/questions/3301635/change-private-static-final-field-using-java-reflection
+ * 
  * @author kazurayam
  */
+
 public class StepExecutionLoggingNeutralizer {
 
 	/**
