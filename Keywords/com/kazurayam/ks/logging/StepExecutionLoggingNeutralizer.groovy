@@ -27,8 +27,8 @@ public class StepExecutionLoggingNeutralizer {
 	 * 
 	 * @return
 	 */
-	static Boolean getValue_shouldLogTestSteps() {
-		KeywordLogger instance = new KeywordLogger();
+	static Boolean getValue_shouldLogTestSteps(KeywordLogger instance) {
+		Objects.requireNonNull(instance)
 		Field targetField = instance.getClass().getDeclaredField("shouldLogTestSteps")
 		return getPrivateBooleanFieldValue(instance, targetField)
 	}
@@ -40,14 +40,14 @@ public class StepExecutionLoggingNeutralizer {
 		return targetField.getBoolean(obj)
 	}
 
-	static void neutralize() {
-		KeywordLogger instance = new KeywordLogger();
+	static void neutralize(KeywordLogger instance) {
+		Objects.requireNonNull(instance)
 		Field targetField = instance.getClass().getDeclaredField("shouldLogTestSteps")
 		setPrivateBooleanFieldWithValue(instance, targetField, Boolean.FALSE)
-		assert getValue_shouldLogTestSteps() == false
 	}
 
 	static void setPrivateBooleanFieldWithValue(Object obj, Field targetField, Object newValue) {
+		Objects.requireNonNull(obj)
 		Objects.requireNonNull(targetField)
 		Objects.requireNonNull(newValue)
 		//
