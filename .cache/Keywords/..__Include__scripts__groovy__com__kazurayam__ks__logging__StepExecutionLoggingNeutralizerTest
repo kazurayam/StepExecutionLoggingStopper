@@ -1,10 +1,10 @@
 {
-  "keywordFileContentHash": "928A4AFF1A7DE8049046F8A2DC2A3CD9",
+  "keywordFileContentHash": "15909C4DCA5023445C457326CB9674E0",
   "keywordClasses": [
     {
       "name": "com.kazurayam.ks.logging.StepExecutionLoggingNeutralizerTest",
       "keywordMethods": []
     }
   ],
-  "javadocParsed": false
+  "javadocParsed": true
 }

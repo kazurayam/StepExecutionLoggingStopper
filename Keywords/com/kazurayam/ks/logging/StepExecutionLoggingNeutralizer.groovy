@@ -6,7 +6,6 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 
- 
 /**
  * Modifies the `com.kms.katalon.core.logging.KeywordLogger` class runtime
  * using Java Reflection API and Groovy's Meta-programming technique.
@@ -40,7 +39,12 @@ import java.util.concurrent.ConcurrentHashMap
 
 public class StepExecutionLoggingNeutralizer {
 
-	
+	static void neutralize() {
+		neutralizeStartKeyword()
+		neutralizeEndKeyword()
+		clearCache()
+	}
+
 	static void neutralizeStartKeyword() {
 		KeywordLogger.metaClass.startKeyword = { String name, String actionType, Map<String, String> attributes, Stack<KeywordStackElement> keywordStack ->
 			/* does no logging */
@@ -54,8 +58,6 @@ public class StepExecutionLoggingNeutralizer {
 			/* does no logging */
 			println KeywordLogger.class.getName() + "#startKeyword(String,Map,int) was called"
 		}
-		println StepExecutionLoggingNeutralizer.class.getName() + "#neutralizeStartKeyword() was called"
-		
 	}
 
 	static void neutralizeEndKeyword() {
@@ -71,18 +73,39 @@ public class StepExecutionLoggingNeutralizer {
 			/* does no logging */
 			println KeywordLogger.class.getName() + "#endKeyword(String,Map,int) was called"
 		}
-		println StepExecutionLoggingNeutralizer.class.getName() + "#neutralizeEndKeyword() finished"
 	}
-	
-	
+
 	// private static final Map<String, KeywordLogger> keywordLoggerLookup = new ConcurrentHashMap<>();
 	static void clearCache() {
-		KeywordLogger instance = new KeywordLogger()
+		KeywordLogger instance = KeywordLogger.getInstance(this.getClass())
 		Field targetField = instance.getClass().getDeclaredField("keywordLoggerLookup")
 		setPrivateStaticFinalFieldWithValue(instance, targetField,
-			new ConcurrentHashMap<>())
+				new ConcurrentHashMap<>())
 	}
-	
+
+	static int sizeOfKeywordLoggerLookup() {
+		KeywordLogger instance = KeywordLogger.getInstance(this.getClass())
+		Field targetField = instance.getClass().getDeclaredField("keywordLoggerLookup")
+		Object obj = getPrivateFieldValue(instance, targetField)
+		assert obj instanceof Map
+		Map m = (Map)obj
+		return m.size()
+	}
+
+	static Object getPrivateFieldValue(Object obj, Field targetField) {
+		Objects.requireNonNull(obj)
+		Objects.requireNonNull(targetField)
+		targetField.setAccessible(true)
+		return targetField.get(obj)
+	}
+
+	/**
+	 * https://qiita.com/5at00001040/items/83bd7ea85d0f545ae7c3
+	 * 
+	 * @param obj
+	 * @param targetField
+	 * @param newValue
+	 */
 	static void setPrivateStaticFinalFieldWithValue(Object obj, Field targetField, Object newValue) {
 		Objects.requireNonNull(obj)
 		Objects.requireNonNull(targetField)
@@ -91,7 +114,7 @@ public class StepExecutionLoggingNeutralizer {
 		Field modifiers = Field.class.getDeclaredField("modifiers")
 		modifiers.setAccessible(true)
 		modifiers.setInt(targetField,
-			targetField.getModifiers() & ~Modifier.PRIVATE & ~Modifier.FINAL)
+				targetField.getModifiers() & ~Modifier.PRIVATE & ~Modifier.FINAL)
 		targetField.set(obj, newValue)
 	}
 }

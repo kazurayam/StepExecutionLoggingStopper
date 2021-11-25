@@ -11,7 +11,6 @@ class TL1 {
 	@BeforeTestSuite
 	def beforeTestSuite(TestSuiteContext testSuiteContext) {
 		if (DO_IT) {
-			StepExecutionLoggingNeutralizer.inspect()
 			StepExecutionLoggingNeutralizer.neutralize()
 		}
 	}

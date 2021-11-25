@@ -10,46 +10,58 @@ import org.junit.runners.JUnit4
 import com.kms.katalon.core.logging.KeywordLogger
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
-
+import java.util.concurrent.ConcurrentHashMap
 
 @RunWith(JUnit4.class)
 public class StepExecutionLoggingNeutralizerTest {
 
 	@Test
-	void test_getPrivateBooleanFieldValue(){
-		KeywordLogger instance = new KeywordLogger();
-		Field targetField = instance.getClass().getDeclaredField("shouldLogTestSteps")
-		Boolean actual = StepExecutionLoggingNeutralizer.getPrivateBooleanFieldValue(instance, targetField)
-		assert actual == true
-	}
-
-	@Test
-	void test_setPrivateBooleanFieldWithValue() {
-		KeywordLogger instance = new KeywordLogger();
-		Field targetField = instance.getClass().getDeclaredField("shouldLogTestSteps")
-		assert StepExecutionLoggingNeutralizer.getPrivateBooleanFieldValue(instance, targetField) == true
-		StepExecutionLoggingNeutralizer.setPrivateBooleanFieldWithValue(instance, targetField, Boolean.FALSE)
-		assert StepExecutionLoggingNeutralizer.getPrivateBooleanFieldValue(instance, targetField) == false
+	void test_getPrivateFieldValue() {
+		KeywordLogger instance = KeywordLogger.getInstance(this.getClass())
+		Field targetField = instance.getClass().getDeclaredField("keywordLoggerLookup")
+		Object obj = StepExecutionLoggingNeutralizer.getPrivateFieldValue(instance, targetField)
+		assert obj instanceof Map
+		Map m = (Map)obj
+		println "keyworLoggerLoockup.keyset(): ${m.keySet()}"
 	}
 	
-	/**
-	 * JUnit freshly load the class `com.kms.katalon.core.logging.KeywordLogger` per each @Test,
-	 * therefore this test step is not affected by the previous test step
-	 */
 	@Test
-	void test_getValue_shouldLogTestSteps(){
-		KeywordLogger instance = new KeywordLogger();
-		Boolean actual = StepExecutionLoggingNeutralizer.getValue_shouldLogTestSteps(instance)
-		assert actual == true
+	void test_sizeOfKeywordLoggerLookup() {
+		int size = StepExecutionLoggingNeutralizer.sizeOfKeywordLoggerLookup()
+		assert size > 3
 	}
 
 	@Test
+	void test_newtralizeStartKeyword() {
+		StepExecutionLoggingNeutralizer.neutralizeStartKeyword()
+		KeywordLogger instance = KeywordLogger.getInstance(this.getClass());
+		instance.startKeyword("", [:], 0)
+	}
+
+	@Test
+	void test_newtralizeEndKeyword() {
+		StepExecutionLoggingNeutralizer.neutralizeEndKeyword()
+		KeywordLogger instance = KeywordLogger.getInstance(this.getClass());
+		instance.endKeyword("", [:], 0)
+	}
+
+	@Test
+	void test_setPrivateStaticFinalFieldWithValue() {
+		KeywordLogger instance = KeywordLogger.getInstance(this.getClass());
+		Field targetField = instance.getClass().getDeclaredField("keywordLoggerLookup")
+		StepExecutionLoggingNeutralizer.setPrivateStaticFinalFieldWithValue(instance, targetField,
+				new ConcurrentHashMap<>())
+	}
+	
+	@Ignore
+	@Test
+	void test_clearCache() {
+		StepExecutionLoggingNeutralizer.clearCache()
+	}
+
+	@Ignore
+	@Test
 	void test_neutralize() {
-		KeywordLogger instance = new KeywordLogger();
-		Boolean before_neutralize = StepExecutionLoggingNeutralizer.getValue_shouldLogTestSteps(instance)
-		assert before_neutralize == true
-		StepExecutionLoggingNeutralizer.neutralize(instance)
-		Boolean after_neutralize = StepExecutionLoggingNeutralizer.getValue_shouldLogTestSteps(instance)
-		assert after_neutralize == false
+		StepExecutionLoggingNeutralizer.neutralize()
 	}
 }

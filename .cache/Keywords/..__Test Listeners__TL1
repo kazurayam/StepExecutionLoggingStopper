@@ -1,10 +1,10 @@
 {
-  "keywordFileContentHash": "A61C33C21640AA383CDAB410F0CDA1BD",
+  "keywordFileContentHash": "7C0A148DED7F29C1FEF02F23EBA9CF59",
   "keywordClasses": [
     {
       "name": "TL1",
       "keywordMethods": []
     }
   ],
-  "javadocParsed": true
+  "javadocParsed": false
 }
