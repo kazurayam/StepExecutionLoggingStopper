@@ -10,25 +10,19 @@ class TL1 {
 	
 	@BeforeTestSuite
 	def beforeTestSuite(TestSuiteContext testSuiteContext) {
-		
 		if (DO_IT) {
-			/**
-			* modify KeywordLogger#startKeyword() and KeywordLogger#endKeyword() so that
-			* these methods do nothing
-			*/
+			StepExecutionLoggingNeutralizer.inspect()
 			StepExecutionLoggingNeutralizer.neutralize()
 		}
 	}
 	
+	/* usually not necessary
 	@BeforeTestCase
 	def beforeTestCase(TestCaseContext testCaseContext) {
 		
 		if (DO_IT) {
-			/**
-			* modify KeywordLogger#startKeyword() and KeywordLogger#endKeyword() so that
-			* these methods do nothing
-			*/
 			StepExecutionLoggingNeutralizer.neutralize()
 		}
 	}
+	*/
 }

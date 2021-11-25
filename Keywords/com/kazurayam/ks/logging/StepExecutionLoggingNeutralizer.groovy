@@ -1,22 +1,32 @@
 package com.kazurayam.ks.logging
 
+import org.junit.After
+
 import com.kms.katalon.core.logging.KeywordLogger
 import com.kms.katalon.core.logging.KeywordLogger.KeywordStackElement
 
 /**
- * Modifies  methods of the com.kms.katalon.core.logging.KeywordLogger class runtime
+ * Modifies methods of the com.kms.katalon.core.logging.KeywordLogger class runtime
  * using Groovy's Meta-programming technique.
  * 
  * See the source of that class at
  * https://github.com/katalon-studio/katalon-studio-testing-framework/blob/master/Include/scripts/groovy/com/kms/katalon/core/logging/KeywordLogger.java
  * 
- * Will override `startKeyword()` and `endKeyword()` in order to stop "step execution logs" (START keyword, END keyword)
- * so that we can reduce the overhead of superfluous events, and eventually our tests can run far faster.
+ * Will override `startKeyword()` and `endKeyword()` in order to stop firing the "step execution logs" events
+ * so that we can reduce the overhead of superfluous "Start action :" and "End action :" messages.
+ * Eventually I want my tests run faster.
  * 
  * @author kazurayam
  */
 public class StepExecutionLoggingNeutralizer {
 
+	static void inspect() {
+		KeywordLogger.metaClass.'static'.getInstance = { Class<?> clazz ->
+			println KeywordLogger.class.getName() + "#getInstance(Class) was called for ${clazz}"
+			return getInstance(clazz.getName())
+		}
+	}
+	
 	static void neutralize() {
 		neutralizeStartKeyword()
 		neutralizeEndKeyword()
@@ -54,4 +64,6 @@ public class StepExecutionLoggingNeutralizer {
 		}
 		println StepExecutionLoggingNeutralizer.class.getName() + "#neutralizeEndKeyword() finished"
 	}
+	
+	
 }
